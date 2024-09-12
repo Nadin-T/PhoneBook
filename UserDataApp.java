@@ -1,12 +1,10 @@
 import java.io.*;
-
 import java.time.LocalDate;
-
 import java.time.format.DateTimeFormatter;
-
 import java.time.format.DateTimeParseException;
-
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class UserDataApp {
 
@@ -28,17 +26,31 @@ public class UserDataApp {
 
             }
 
-            String lastName = data[0];
+            String lastName = validateName(data[0]);
 
-            String firstName = data[1];
+            String firstName = validateName(data[1]);
 
-            String middleName = data[2];
+            String middleName = validateName(data[2]);
+            
 
-            LocalDate birthDate = LocalDate.parse(data[3], DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+            LocalDate birthDate;
+            try {
+                birthDate = LocalDate.parse(data[3], 
+                DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+            } catch (DateTimeParseException e){
+                throw new IllegalArgumentException(
+                    "Неверный формат даты рождения. Ожидается 'dd.MM.yyyy'.");
+            }
 
-            long phoneNumber = Long.parseLong(data[4]);
+            long phoneNumber;
+            try {
+                phoneNumber = Long.parseLong(data[4]);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException(
+                    "Неверный формат номера телефона.");
+            }
 
-            char gender = data[5].charAt(0);
+            char gender = Character.toLowerCase(data[5].charAt(0));
 
             if (gender != 'f' && gender != 'm') {
 
@@ -52,14 +64,25 @@ public class UserDataApp {
 
             System.err.println(e.getMessage());
 
-            e.printStackTrace();
-
         } finally {
 
             scanner.close();
 
         }
 
+    }
+
+    private static String validateName(String name){
+        String regex = "^[a-zA-Zа-яА-Я-]+$";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(name);
+
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException(
+                "Имя, фамилия или отчество содержат недопустимые символы.");
+        }
+
+        return name;
     }
 
     private static void writeToFile(String lastName, String firstName, String middleName, LocalDate birthDate, long phoneNumber, char gender) {
@@ -79,6 +102,5 @@ public class UserDataApp {
         }
 
     }
-
 }
 
